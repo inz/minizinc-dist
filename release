@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# Prepare MiniZinc or-tools distribution for macOS
+
+set -e
+
+prepare_dist() {
+  dist_name=$1
+  minizinc_url=$2
+  or_tools_url=$3
+
+  echo "Creating dist ${dist_name}..."
+
+  rm -rf ${dist_name} || true
+  mkdir -p ${dist_name}
+  pushd ${dist_name} &>/dev/null
+
+  echo "Fetching minizinc..."
+  curl -sSL ${minizinc_url} | tar --strip-components 1 -xzf -
+
+  mkdir -p or-tools
+  pushd or-tools &>/dev/null
+  echo "Fetching or-tools..."
+  curl -sSL ${or_tools_url} | tar --strip-components 1 -xzf -
+
+  echo "Moving or-tools globals..."
+  mv share/minizinc ../share/minizinc/or-tools
+  mv bin/* ../bin
+  mkdir ../share/or-tools
+  mv LICENSE-2.0.txt ../share/or-tools
+  popd &>/dev/null
+  rm -rf or-tools
+  rm -rf doc
+
+  popd &>/dev/null
+  echo "Creating dist archive..."
+  tar -czf ${dist_name}.tar.gz ${dist_name}
+  
+  mkdir -p vendor
+  mv ${dist_name} vendor/minizinc
+  tar -czf ${dist_name}-vendor.tar.gz vendor
+  rm -rf vendor
+}
+
+dist_base=minizinc-2.0.13_or-tools-v2016-06
+
+prepare_dist ${dist_base}-darwin \
+  https://github.com/MiniZinc/libminizinc/releases/download/2.0.13/minizinc-2.0.13-Darwin.tar.gz \
+  https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.flatzinc.MacOsX-10.11.5.3629.tar.gz
+
+prepare_dist ${dist_base}-linux64 \
+  https://github.com/MiniZinc/libminizinc/releases/download/2.0.13/minizinc-2.0.13-linux64.tar.gz \
+  https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.flatzinc.Ubuntu-14.04-64bit.3629.tar.gz
+
+release_cmd="hub release create -m ${dist_base} ${dist_base}"
+for asset in ./*.tar.gz; do
+  release_cmd="${release_cmd} -a ${asset}"
+done
+
+echo "Creating release..."
+${release_cmd}
+
+echo "Done."

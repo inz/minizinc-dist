@@ -7,7 +7,7 @@ The distribution comes in two variants: a regular archive and a Heroku-friendly 
 # Installation
 
 To install the regular distribution, fetch the archive and unpack it.
-Currently, there are releases for `linux64` and `darwin`.
+Currently, there are releases for `linux64`, `darwin`, and `win64`.
 See [Releases](https://github.com/inz/minizinc-dist/releases) for details.
 
 # Installation on Heroku/Cloud Foundry

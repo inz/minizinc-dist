@@ -8,6 +8,7 @@ prepare_dist() {
   dist_name=$1
   minizinc_url=$2
   or_tools_url=$3
+  arch=${4-linux}
 
   echo "Creating dist ${dist_name}..."
 
@@ -16,12 +17,12 @@ prepare_dist() {
   pushd ${dist_name} &>/dev/null
 
   echo "Fetching minizinc..."
-  curl -sSL ${minizinc_url} | tar --strip-components 1 -xzf -
+  extract_here ${minizinc_url} ${arch}
 
   mkdir -p or-tools
   pushd or-tools &>/dev/null
   echo "Fetching or-tools..."
-  curl -sSL ${or_tools_url} | tar --strip-components 1 -xzf -
+  extract_here ${or_tools_url} ${arch}
 
   echo "Moving or-tools globals..."
   mv share/minizinc ../share/minizinc/or-tools
@@ -34,12 +35,55 @@ prepare_dist() {
 
   popd &>/dev/null
   echo "Creating dist archive..."
-  tar -czf ${dist_name}.tar.gz ${dist_name}
+
+  create_archive ${arch} ${dist_name} ${dist_name}
   
   mkdir -p vendor
   mv ${dist_name} vendor/minizinc
-  tar -czf ${dist_name}-vendor.tar.gz vendor
+  create_archive ${arch} ${dist_name}-vendor vendor
   rm -rf vendor
+}
+
+extract_here() {
+  url=$1
+  arch=$2
+  
+  case ${arch} in
+    linux*|darwin)
+      curl -sSL ${url} | tar --strip-components 1 -xzf -
+      ;;
+    win*)
+      tempdir=$(mktemp -d)
+      pushd ${tempdir} &>/dev/null
+      curl -sSL ${url} >tmp.zip
+      unzip -d ${tempdir} -q tmp.zip
+      popd &>/dev/null
+      mv ${tempdir}/*/* ./
+      rm ${tempdir}/tmp.zip
+      rmdir ${tempdir}/* ${tempdir}
+      ;;
+    *)
+      echo "Unknown arch ${arch}."
+      exit 1
+  esac
+}
+
+create_archive() {
+  arch=$1
+  archive_basename=$2
+  shift; shift
+  
+  case ${arch} in
+    linux*|darwin)
+      tar -czf ${archive_basename}.tar.gz $@
+      ;;
+    win*)
+      zip -qr ${archive_basename}.zip $@
+      ;;
+    *)
+      echo "Unknown arch ${arch}."
+      exit 1
+  esac
 }
 
 dist_base=minizinc-2.0.13_or-tools-v2016-06
@@ -52,8 +96,13 @@ prepare_dist ${dist_base}-linux64 \
   https://github.com/MiniZinc/libminizinc/releases/download/2.0.13/minizinc-2.0.13-linux64.tar.gz \
   https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.flatzinc.Ubuntu-14.04-64bit.3629.tar.gz
 
+prepare_dist ${dist_base}-win64 \
+  https://github.com/MiniZinc/libminizinc/releases/download/2.0.13/minizinc-2.0.13-win64.zip \
+  https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.flatzinc.VisualStudio2015-64b.3629.zip \
+  win64
+
 release_cmd="hub release create -m ${dist_base} ${dist_base}"
-for asset in ./*.tar.gz; do
+for asset in ./${dist_base}*; do
   release_cmd="${release_cmd} -a ${asset}"
 done
 

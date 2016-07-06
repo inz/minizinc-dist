@@ -1,3 +1,4 @@
 minizinc-*/
 vendor/
 *.tar.gz
+*.zip

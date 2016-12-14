@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Prepare MiniZinc or-tools distribution for macOS
+# Prepare MiniZinc or-tools distribution for macOS, Linux, Win64
 
 set -e
 
@@ -86,19 +86,19 @@ create_archive() {
   esac
 }
 
-dist_base=minizinc-2.0.13_or-tools-v2016-06
+dist_base=minizinc-2.1.0_or-tools-v5.0
 
 prepare_dist ${dist_base}-darwin \
-  https://github.com/MiniZinc/libminizinc/releases/download/2.0.13/minizinc-2.0.13-Darwin.tar.gz \
-  https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.flatzinc.MacOsX-10.11.5.3629.tar.gz
+  https://github.com/MiniZinc/libminizinc/releases/download/2.1.0/minizinc-2.1.0-Darwin.tar.gz \
+  https://github.com/google/or-tools/releases/download/v5.0/or-tools_flatzinc_MacOsX-10.11.6_v5.0.3919.tar.gz
 
 prepare_dist ${dist_base}-linux64 \
-  https://github.com/MiniZinc/libminizinc/releases/download/2.0.13/minizinc-2.0.13-linux64.tar.gz \
-  https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.flatzinc.Ubuntu-14.04-64bit.3629.tar.gz
+  https://github.com/MiniZinc/libminizinc/releases/download/2.1.0/minizinc-2.1.0-linux64.tar.gz \
+  https://github.com/google/or-tools/releases/download/v5.0/or-tools_flatzinc_Ubuntu-14.04-64bit_v5.0.3919.tar.gz
 
 prepare_dist ${dist_base}-win64 \
-  https://github.com/MiniZinc/libminizinc/releases/download/2.0.13/minizinc-2.0.13-win64.zip \
-  https://github.com/google/or-tools/releases/download/v2016-06/Google.OrTools.flatzinc.VisualStudio2015-64b.3629.zip \
+  https://github.com/MiniZinc/libminizinc/releases/download/2.1.0/minizinc-2.1.0-win64.zip \
+  https://github.com/google/or-tools/releases/download/v5.0/or-tools_flatzinc_VisualStudio2015-64bit_v5.0.3919.zip \
   win64
 
 release_cmd="hub release create -m ${dist_base} ${dist_base}"
